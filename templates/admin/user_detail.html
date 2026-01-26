@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}User Detail - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <div class="flex-between mb-4">
+            <h1>User Profile <span class="badge badge-admin">ADMIN VIEW</span></h1>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline">Back to Users</a>
+        </div>
+
+        <!-- User Info Card -->
+        <div class="card card-glass mb-4">
+            <div class="grid grid-2" style="align-items: center;">
+                <div>
+                    <h2 class="text-gradient">{{ user.username }}</h2>
+                    <p style="color: var(--text-secondary);">{{ user.email }}</p>
+                    <div class="mt-2">
+                        <span class="badge badge-{% if user.is_admin %}admin{% else %}skill{% endif %}">
+                            {{ 'Administrator' if user.is_admin else 'Learner' }}
+                        </span>
+                        <span class="badge badge-course" style="margin-left: 0.5rem;">
+                            Joined: {{ user.created_at|format_date }}
+                        </span>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="stat-number" style="font-size: 2rem;">{{ stats.completed_steps }}</div>
+                    <div class="stat-label">Steps Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="align-items: start;">
+            <!-- Followed Roadmaps -->
+            <div class="card">
+                <h3 class="mb-3">📚 Learning Paths ({{ user.followed_roadmaps|length }})</h3>
+                {% if user.followed_roadmaps %}
+                <ul class="steps-list">
+                    {% for ur in user.followed_roadmaps %}
+                    <li class="step-item" style="border-left-color: var(--electric-blue);">
+                        <div class="flex-between">
+                            <h4 class="step-title">
+                                <a href="{{ url_for('view_roadmap', roadmap_id=ur.roadmap.id) }}">{{ ur.roadmap.title
+                                    }}</a>
+                            </h4>
+                            <span class="badge badge-{{ ur.roadmap.difficulty }}">{{ ur.roadmap.difficulty }}</span>
+                        </div>
+                        <!-- Calculate progress manually in template or pass it in context -->
+                        <div class="progress-container mt-2">
+                            <div class="progress-bar-bg" style="height: 6px;">
+                                {% set prog = ur.roadmap.get_user_progress(user.id) %}
+                                <div class="progress-bar" style="width: {{ prog }}%;"></div>
+                            </div>
+                            <div
+                                style="text-align: right; font-size: 0.8rem; margin-top: 4px; color: var(--text-secondary);">
+                                {{ prog }}% Complete
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: var(--text-secondary);">No roadmaps followed yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Feedback History -->
+            <div class="card">
+                <h3 class="mb-3">💬 Feedback History</h3>
+                {% if user.feedback %}
+                <ul class="steps-list">
+                    {% for item in user.feedback %}
+                    <li class="step-item"
+                        style="border-left-color: {% if item.status == 'Resolved' %}var(--success){% else %}var(--warning){% endif %};">
+                        <div class="flex-between mb-1">
+                            <span class="badge badge-job">{{ item.category }}</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">{{ item.created_at|format_date
+                                }}</span>
+                        </div>
+                        <p style="margin-bottom: 0.5rem;">{{ item.message }}</p>
+                        <div class="flex-between">
+                            <div style="color: var(--warning);">
+                                {% for _ in range(item.rating) %}⭐{% endfor %}
+                            </div>
+                            <span
+                                class="badge badge-{% if item.status == 'Resolved' %}success{% else %}warning{% endif %}"
+                                style="font-size: 0.7rem;">
+                                {{ item.status }}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: var(--text-secondary);">No feedback submitted.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        {% if not user.is_admin %}
+        <div class="card mt-4" style="border: 1px solid var(--danger);">
+            <h3 class="text-gradient" style="--gradient-primary: var(--danger);">⚠️ Admin Actions</h3>
+            <p class="mb-3">Critical actions for this user account.</p>
+            <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
+                <button type="submit" class="btn btn-danger"
+                    onclick="return confirmDelete('Are you sure you want to PERMANENTLY delete this user and all data?')">
+                    🗑️ Delete User Account
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

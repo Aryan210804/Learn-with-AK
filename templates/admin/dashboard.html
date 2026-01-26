@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <div class="flex-between mb-4">
+            <h1>Admin Dashboard <span class="badge badge-admin">ADMIN</span></h1>
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline">User View</a>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.users }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.roadmaps }}</div>
+                <div class="stat-label">Total Roadmaps</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.steps }}</div>
+                <div class="stat-label">Total Steps</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <h2 class="mb-3">Quick Actions</h2>
+            <div class="flex gap-2">
+                <a href="{{ url_for('add_roadmap') }}" class="btn btn-primary">
+                    ➕ Add New Roadmap
+                </a>
+                <a href="{{ url_for('admin_roadmaps') }}" class="btn btn-secondary">
+                    📚 Manage Roadmaps
+                </a>
+                <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                    👥 Manage Users
+                </a>
+                <a href="{{ url_for('admin_feedback') }}" class="btn btn-secondary">
+                    💬 User Feedback
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="grid grid-2 mt-4">
+            <div class="card">
+                <h3 class="mb-3">Recent Users</h3>
+                {% if recent_users %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>
+                                    {{ user.username }}
+                                    {% if user.is_admin %}
+                                    <span class="badge badge-admin" style="font-size: 0.65rem;">ADMIN</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.created_at|format_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color: var(--text-secondary);">No users yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Recent Roadmaps -->
+            <div class="card">
+                <h3 class="mb-3">Recent Roadmaps</h3>
+                {% if recent_roadmaps %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Steps</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for roadmap in recent_roadmaps %}
+                            <tr>
+                                <td>{{ roadmap.title[:30] }}...</td>
+                                <td><span class="badge badge-{{ roadmap.category }}">{{ roadmap.category }}</span></td>
+                                <td>{{ roadmap.get_total_steps() }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color: var(--text-secondary);">No roadmaps yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

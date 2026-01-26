@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <h1 class="mb-4">Welcome back, <span class="text-gradient">{{ current_user.username }}</span>! 👋</h1>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">Total Roadmaps</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.in_progress }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.completed }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Followed Roadmaps -->
+        <div class="mt-4">
+            <div class="flex-between mb-3">
+                <h2>My Roadmaps</h2>
+                <a href="{{ url_for('browse_roadmaps') }}" class="btn btn-primary">Browse More</a>
+            </div>
+
+            {% if roadmap_data %}
+            <div class="grid grid-2">
+                {% for item in roadmap_data %}
+                <div class="roadmap-card">
+                    <div class="roadmap-header">
+                        <div class="roadmap-badges">
+                            <span class="badge badge-{{ item.roadmap.category }}">{{ item.roadmap.category }}</span>
+                            <span class="badge badge-{{ item.roadmap.difficulty }}">{{ item.roadmap.difficulty }}</span>
+                        </div>
+                        <h3 class="roadmap-title">{{ item.roadmap.title }}</h3>
+                    </div>
+
+                    <p class="roadmap-description">{{ item.roadmap.description[:150] }}...</p>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span class="progress-text">{{ item.progress }}%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" style="width: {{ item.progress }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="roadmap-footer">
+                        <span class="text-secondary" style="font-size: 0.875rem;">
+                            {{ item.roadmap.get_total_steps() }} steps
+                        </span>
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('view_roadmap', roadmap_id=item.roadmap.id) }}"
+                                class="btn btn-primary btn-sm">
+                                {% if item.progress == 0 %}
+                                Start Learning
+                                {% elif item.progress == 100 %}
+                                Review
+                                {% else %}
+                                Continue
+                                {% endif %}
+                            </a>
+                            <form method="POST" action="{{ url_for('unfollow_roadmap', roadmap_id=item.roadmap.id) }}"
+                                style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirmDelete('Remove this roadmap from your dashboard?')">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card card-glass text-center" style="padding: 3rem;">
+                <h3 class="mb-3">No Roadmaps Yet</h3>
+                <p class="mb-4" style="color: var(--text-secondary);">
+                    Start your learning journey by following a roadmap!
+                </p>
+                <a href="{{ url_for('browse_roadmaps') }}" class="btn btn-primary">Browse Roadmaps</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <div class="flex-between mb-4">
+            <h1>Manage Users <span class="badge badge-admin">ADMIN</span></h1>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+        </div>
+
+        <div class="card">
+            {% if users %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.is_admin %}
+                                <span class="badge badge-admin">ADMIN</span>
+                                {% else %}
+                                <span class="badge badge-skill">USER</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.created_at|format_date }}</td>
+                            <td>
+                                {% if user.id != current_user.id %}
+                                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}"
+                                    class="btn btn-primary btn-sm" style="margin-right: 0.5rem;">
+                                    View Details
+                                </a>
+                                <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}"
+                                    style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirmDelete('Delete user {{ user.username }}? This will remove all their data.')">
+                                        Delete
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span style="color: var(--text-muted); font-size: 0.875rem;">You</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                No users found.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

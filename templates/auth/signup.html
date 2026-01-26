@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <!-- Animated Background Elements -->
+    <div class="glow-orb" style="top: 10%; right: 10%; background: var(--emerald-green);"></div>
+    <div class="glow-orb" style="bottom: 10%; left: 10%; background: var(--electric-blue);"></div>
+
+    <div class="auth-card glass-panel">
+        <div class="auth-header">
+            <h1 class="text-gradient">Start Learning</h1>
+            <p style="color: var(--text-secondary);">Join thousands of developers & learners</p>
+        </div>
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                {{ form.username(class="form-control", placeholder="Pick a username") }}
+                {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                <div class="form-error">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                {{ form.email(class="form-control", placeholder="name@example.com") }}
+                {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                <div class="form-error">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                {{ form.password(class="form-control", placeholder="Create a strong password") }}
+                {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                <div class="form-error">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                {{ form.confirm_password(class="form-control", placeholder="Repeat password") }}
+                {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                <div class="form-error">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-glow" style="width: 100%; margin-top: 1rem;">
+                Create Account
+            </button>
+        </form>
+
+        <div class="auth-footer text-center mt-4">
+            <p style="color: var(--text-secondary);">Already have an account? <a href="{{ url_for('login') }}"
+                    class="text-gradient" style="font-weight: bold;">Log In</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glow-orb {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        z-index: -1;
+        animation: float 12s infinite ease-in-out reverse;
+    }
+
+    .glass-panel {
+        background: rgba(25, 25, 35, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 3rem;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .btn-glow {
+        transition: all 0.3s ease;
+    }
+
+    .btn-glow:hover {
+        box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+        transform: translateY(-2px);
+    }
+
+    @keyframes float {
+        0% {
+            transform: translate(0, 0);
+        }
+
+        50% {
+            transform: translate(-30px, 30px);
+        }
+
+        100% {
+            transform: translate(0, 0);
+        }
+    }
+</style>
+{% endblock %}

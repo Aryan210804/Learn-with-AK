@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Roadmaps - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <h1 class="mb-4">Browse Roadmaps</h1>
+
+        <!-- Filter and Search Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <a href="{{ url_for('browse_roadmaps', category='all', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'all' %}active{% endif %}"> All </a>
+                <a href="{{ url_for('browse_roadmaps', category='Tech', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'Tech' %}active{% endif %}"> Tech </a>
+                <a href="{{ url_for('browse_roadmaps', category='Medical', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'Medical' %}active{% endif %}"> Medical </a>
+                <a href="{{ url_for('browse_roadmaps', category='Government', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'Government' %}active{% endif %}"> Govt </a>
+                <a href="{{ url_for('browse_roadmaps', category='Finance', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'Finance' %}active{% endif %}"> Finance </a>
+                <a href="{{ url_for('browse_roadmaps', category='Core Engineering', search=search_query) }}"
+                    class="filter-btn {% if current_category == 'Core Engineering' %}active{% endif %}"> Engineering
+                </a>
+            </div>
+
+            <div class="search-container">
+                <form method="GET" action="{{ url_for('browse_roadmaps') }}">
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                    <input type="text" name="search" class="search-input" placeholder="Search roadmaps... (Ctrl+K)"
+                        value="{{ search_query }}">
+                </form>
+            </div>
+        </div>
+
+        <!-- Roadmaps Grid -->
+        {% if roadmaps %}
+        <div class="grid grid-3">
+            {% for roadmap in roadmaps %}
+            <div class="roadmap-card">
+                <div class="roadmap-header">
+                    <div class="roadmap-badges">
+                        <span class="badge badge-{{ roadmap.category }}">{{ roadmap.category }}</span>
+                        <span class="badge badge-{{ roadmap.difficulty }}">{{ roadmap.difficulty }}</span>
+                    </div>
+                    <h3 class="roadmap-title">{{ roadmap.title }}</h3>
+                </div>
+
+                <p class="roadmap-description">{{ roadmap.description[:150] }}...</p>
+
+                <div class="roadmap-footer">
+                    <span class="text-secondary" style="font-size: 0.875rem;">
+                        {{ roadmap.get_total_steps() }} steps
+                    </span>
+
+                    {% if roadmap.id in followed_ids %}
+                    <a href="{{ url_for('view_roadmap', roadmap_id=roadmap.id) }}" class="btn btn-success btn-sm">
+                        ✓ Following
+                    </a>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('follow_roadmap', roadmap_id=roadmap.id) }}"
+                        style="display: inline;">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Follow
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card card-glass text-center" style="padding: 3rem;">
+            <h3 class="mb-3">No Roadmaps Found</h3>
+            <p style="color: var(--text-secondary);">
+                {% if search_query %}
+                No roadmaps match your search "{{ search_query }}". Try different keywords.
+                {% else %}
+                No roadmaps available in this category yet.
+                {% endif %}
+            </p>
+            {% if search_query or current_category != 'all' %}
+            <a href="{{ url_for('browse_roadmaps') }}" class="btn btn-primary mt-3">View All Roadmaps</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

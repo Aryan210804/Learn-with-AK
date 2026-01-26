@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Feedback - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <div class="flex-between mb-4">
+            <h1>Send us Feedback</h1>
+            <a href="{{ url_for('user_dashboard') if current_user.is_authenticated else url_for('index') }}"
+                class="btn btn-outline">Back</a>
+        </div>
+
+        <div class="card card-glass max-width-600 centered">
+            <p class="mb-4" style="color: var(--text-secondary);">
+                We value your input! Whether it's a bug report, a feature request, or just a general inquiry,
+                let us know how we can make Learn with AK better for you.
+            </p>
+
+            <form method="POST" action="{{ url_for('submit_feedback') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    <label for="category" class="form-label">Feedback Category</label>
+                    {{ form.category(class="form-control") }}
+                    {% if form.category.errors %}
+                    {% for error in form.category.errors %}
+                    <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="rating" class="form-label">Rate your Experience</label>
+                    {{ form.rating(class="form-control") }}
+                    {% if form.rating.errors %}
+                    {% for error in form.rating.errors %}
+                    <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="message" class="form-label">Your Message</label>
+                    {{ form.message(class="form-control", rows="6", placeholder="Describe your thoughts, issues, or
+                    suggestions here...") }}
+                    {% if form.message.errors %}
+                    {% for error in form.message.errors %}
+                    <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-glow w-100">
+                        🚀 Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .max-width-600 {
+        max-width: 600px;
+    }
+
+    .centered {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+</style>
+{% endblock %}

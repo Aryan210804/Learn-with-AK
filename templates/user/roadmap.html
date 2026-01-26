@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}{{ roadmap.title }} - Learn with AK{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <!-- Roadmap Header -->
+        <div class="card card-glass mb-4">
+            <div class="flex-between">
+                <div class="roadmap-badges mb-3">
+                    <span class="badge badge-{{ roadmap.category }}">{{ roadmap.category }}</span>
+                    <span class="badge badge-{{ roadmap.difficulty }}">{{ roadmap.difficulty }}</span>
+                    {% if roadmap.is_ai_generated %}
+                    <span class="badge badge-admin">🤖 AI Generated</span>
+                    {% endif %}
+                </div>
+
+                {% if is_following %}
+                <form method="POST" action="{{ url_for('unfollow_roadmap', roadmap_id=roadmap.id) }}"
+                    style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirmDelete('Unfollow this roadmap?')">
+                        Unfollow
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('follow_roadmap', roadmap_id=roadmap.id) }}"
+                    style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-sm btn-glow">
+                        Follow Roadmap
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <h1 class="mb-3 text-gradient">{{ roadmap.title }}</h1>
+            <p style="color: var(--text-secondary); font-size: 1.125rem; line-height: 1.6;">{{ roadmap.description }}
+            </p>
+
+            <!-- Metadata (Skills & Tools) -->
+            {% set meta = roadmap.get_meta() %}
+            {% if meta.skills %}
+            <div class="grid grid-2 mt-4" style="gap: var(--spacing-lg);">
+                <div>
+                    <h4 style="color: var(--electric-blue);">🧠 Required Skills</h4>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        {% for skill in meta.skills.core %}
+                        <span class="badge badge-skill">{{ skill }}</span>
+                        {% endfor %}
+                        {% for skill in meta.skills.technical %}
+                        <span class="badge badge-course">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: var(--emerald-green);">🛠️ Tools & Tech</h4>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        {% for tool in meta.tools %}
+                        <span class="badge badge-job">{{ tool }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Progress Overview (Only if following) -->
+            {% if is_following %}
+            <div class="progress-container mt-4 p-3" style="background: rgba(255,255,255,0.05); border-radius: 12px;">
+                <div class="progress-label">
+                    <span style="font-weight: 600;">Your Progress</span>
+                    <span class="progress-text" style="font-weight: 600; color: var(--electric-blue);">{{ progress
+                        }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" data-progress="{{ progress }}"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-3" style="grid-template-columns: 2fr 1fr; align-items: start; gap: 2rem;">
+            <!-- Left Column: Interactive Syllabus (Accordion) -->
+            <div class="card">
+                <h2 class="mb-4">🧭 Step-by-Step Journey</h2>
+
+                {% if steps_data %}
+                {% for level_name, steps in steps_data|groupby('step.level') %}
+                <div class="mb-4">
+                    <h3 class="mb-3 level-header" style="color: var(--electric-blue);">
+                        {{ level_name }} Phase
+                    </h3>
+                    <div class="steps-accordion">
+                        {% for item in steps %}
+                        <div class="accordion-item {% if item.completed %}completed-item{% endif %}"
+                            id="step-{{ item.step.id }}">
+                            <div class="accordion-header" onclick="toggleAccordion('content-{{ item.step.id }}')">
+                                <div class="flex align-center gap-2">
+                                    {% if is_following %}
+                                    <div class="checkbox-wrapper" onclick="event.stopPropagation()">
+                                        <input type="checkbox" class="step-checkbox" data-step-id="{{ item.step.id }}"
+                                            {% if item.completed %}checked{% endif %}
+                                            onchange="toggleStepProgress(this)">
+                                    </div>
+                                    {% else %}
+                                    <span class="step-circle">{{ item.step.step_number }}</span>
+                                    {% endif %}
+                                    <h4 class="step-title m-0">{{ item.step.title }}</h4>
+                                </div>
+                                <span class="accordion-icon">▼</span>
+                            </div>
+
+                            <div class="accordion-content" id="content-{{ item.step.id }}">
+                                <div class="content-inner">
+                                    <p class="step-description">{{ item.step.description }}</p>
+
+                                    {% if item.step.resources %}
+                                    <div class="step-resources mt-2">
+                                        <strong style="color: var(--cyber-purple); font-size: 0.875rem;">📚 Learning
+                                            Resources:</strong>
+                                        <div class="resource-links mt-1">
+                                            <!-- Simple auto-link detection handled securely or basic text -->
+                                            <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                                                {{ item.step.resources }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No steps available.</p>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Career Info Sidebar -->
+            <div class="sticky-sidebar flex flex-col gap-md">
+
+                {% if meta.career_readiness %}
+                <div class="card card-glass">
+                    <h3 class="mb-3 gradient-text">🏁 Career Readiness</h3>
+                    <ul class="readiness-list">
+                        {% if meta.career_readiness.resume %}
+                        <li class="mb-3">
+                            <strong>📄 Resume Keywords:</strong>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for item in meta.career_readiness.resume %}
+                                <span class="badge badge-skill" style="font-size: 0.7rem;">{{ item }}</span>
+                                {% endfor %}
+                            </div>
+                        </li>
+                        {% endif %}
+
+                        {% if meta.career_readiness.interview %}
+                        <li class="mb-3">
+                            <strong>🗣️ Interview Topics:</strong>
+                            <ul
+                                style="padding-left: 1rem; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+                                {% for item in meta.career_readiness.interview %}
+                                <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="card">
+                    <h3 class="mb-2">⏱️ Timeline</h3>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: var(--emerald-green);">
+                        {{ meta.estimated_time or "Self-Paced" }}
+                    </p>
+                </div>
+
+                {% if meta.career_progression %}
+                <div class="card">
+                    <h3 class="mb-3">📈 Progression Ladder</h3>
+                    <div class="progression-steps">
+                        {% for role in meta.career_progression %}
+                        <div class="progression-step">
+                            <div class="dot"></div>
+                            <span>{{ role }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Roadmap Specific Styles */
+    .sticky-sidebar {
+        position: sticky;
+        top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .accordion-item {
+        background: rgba(25, 25, 35, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .accordion-item:hover {
+        border-color: rgba(5, 213, 255, 0.3);
+    }
+
+    .accordion-item.completed-item {
+        border-left: 3px solid var(--success);
+        background: rgba(0, 255, 157, 0.05);
+    }
+
+    .accordion-header {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .accordion-icon {
+        transition: transform 0.3s ease;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .accordion-content.active {
+        max-height: 500px;
+        /* High enough to allow content */
+    }
+
+    .content-inner {
+        padding: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .step-circle {
+        width: 24px;
+        height: 24px;
+        background: var(--electric-blue);
+        color: #000;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .progression-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .progression-step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0;
+        position: relative;
+    }
+
+    .progression-step::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 1.2rem;
+        bottom: -0.8rem;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .progression-step:last-child::before {
+        display: none;
+    }
+
+    .progression-step .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--cyber-purple);
+        box-shadow: 0 0 10px var(--cyber-purple);
+        z-index: 1;
+    }
+
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+    }
+
+    .step-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--electric-blue);
+        border-radius: 4px;
+    }
+
+    .step-checkbox:checked {
+        accent-color: var(--success);
+    }
+
+    .step-title {
+        flex: 1;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+
+    .step-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+    }
+
+    .step-resources {
+        padding: 0.75rem;
+        background: rgba(138, 43, 226, 0.1);
+        border-left: 3px solid var(--cyber-purple);
+        border-radius: 4px;
+    }
+
+    .level-header {
+        font-size: 1.25rem;
+        font-weight: 600;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(5, 213, 255, 0.3);
+    }
+</style>
+
+<script>
+    function toggleAccordion(contentId) {
+        const content = document.getElementById(contentId);
+        const icon = content.previousElementSibling.querySelector('.accordion-icon');
+
+        if (content.classList.contains('active')) {
+            content.style.maxHeight = null;
+            content.classList.remove('active');
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            content.classList.add('active');
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+
+    async function toggleStepProgress(checkbox) {
+        const stepId = checkbox.getAttribute('data-step-id');
+
+        if (!stepId) {
+            console.error('Step ID not found');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/user/progress/${stepId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update progress');
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update the accordion item styling
+                const accordionItem = document.getElementById(`step-${stepId}`);
+                if (data.completed) {
+                    accordionItem.classList.add('completed-item');
+                } else {
+                    accordionItem.classList.remove('completed-item');
+                }
+
+                // Update progress bar if it exists
+                const progressBar = document.querySelector('.progress-bar');
+                const progressText = document.querySelector('.progress-text');
+                if (progressBar && progressText) {
+                    progressBar.style.width = data.progress + '%';
+                    progressText.textContent = data.progress + '%';
+                }
+
+                // Show success feedback
+                showToast(data.completed ? 'Step marked as complete! 🎉' : 'Step marked as incomplete', 'success');
+            } else {
+                // Revert checkbox if update failed
+                checkbox.checked = !checkbox.checked;
+                showToast(data.message || 'Failed to update progress', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Revert checkbox on error
+            checkbox.checked = !checkbox.checked;
+            showToast('An error occurred. Please try again.', 'error');
+        }
+    }
+
+    function showToast(message, type = 'info') {
+        // Simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--electric-blue)'};
+            color: #000;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize progress bar width on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            const progress = progressBar.getAttribute('data-progress');
+            if (progress) {
+                progressBar.style.width = progress + '%';
+            }
+        }
+    });
+</script>
+{% endblock %}
