@@ -62,7 +62,7 @@ learn-with-ak/
 The platform features a built-in admin panel accessible only to the super-admin.
 
 - **Default Admin Email**: `aryankumar735588@gmail.com`
-- **Default Password**: `admin123`
+
 
 **Admin Features**:
 - Real-time dashboard statistics.
