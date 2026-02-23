@@ -33,8 +33,9 @@ ENV/
 .flaskenv
 
 # Database
-*.db
-*.sqlite3
+# We are allowing .db files to bundle pre-seeded data for Vercel
+# *.db
+# *.sqlite3
 
 # Vercel and IDEs
 .vercel

@@ -189,11 +189,11 @@ def signup():
         return redirect(url_for('index'))
     form = SignupForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data, email=form.email.data.lower())
         user.set_password(form.password.data)
         # First user is admin (optional logic, but stuck to strict reqs)
         # Checking if it's the super admin email
-        if form.email.data == Config.SUPER_ADMIN_EMAIL:
+        if form.email.data.lower() == Config.SUPER_ADMIN_EMAIL.lower():
             user.is_admin = True
         
         db.session.add(user)
@@ -208,13 +208,13 @@ def login():
         return redirect(url_for('user_dashboard'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(email=form.email.data.lower()).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=True) # Always remember for now
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('user_dashboard'))
         else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+            flash(f'Login Unsuccessful for {form.email.data}. Please check email and password', 'danger')
     return render_template('auth/login.html', title='Login', form=form)
 
 @app.route("/logout")
@@ -734,6 +734,23 @@ def save_ai_roadmap():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
+@app.route("/debug-db")
+def debug_db():
+    if not os.environ.get('VERCEL'):
+        return "Local development"
+    
+    users = User.query.all()
+    user_list = [f"{u.username} ({u.email}) - Admin: {u.is_admin}" for u in users]
+    
+    db_status = {
+        "db_path": Config.SQLALCHEMY_DATABASE_URI,
+        "exists": os.path.exists('/tmp/learn_with_ak.db'),
+        "users_found": len(user_list),
+        "user_details": user_list,
+        "super_admin_config": Config.SUPER_ADMIN_EMAIL
+    }
+    return jsonify(db_status)
 
 if __name__ == '__main__':
     app.run(debug=True)
